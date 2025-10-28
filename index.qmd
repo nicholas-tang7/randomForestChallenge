@@ -66,6 +66,12 @@ if (!require(randomForest, quietly = TRUE)) {
 if (!require(languageserver, quietly = TRUE)) {
   install.packages("languageserver")
 }
+if (!require(gridExtra, quietly = TRUE)) {
+  install.packages("gridExtra")
+}
+if (!require(rpart, quietly = TRUE)) {
+  install.packages("rpart")
+}
 
 ```
 
@@ -286,7 +292,229 @@ performance_df <- data.frame(
 print(performance_df)
 ```
 
+### Power of More Trees Visualization
+
+```{r}
+#| label: power-of-trees-visualization
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 12
+#| fig-height: 8
+
+# Create comprehensive visualization showing the power of more trees
+library(ggplot2)
+if (!require(gridExtra, quietly = TRUE)) {
+  install.packages("gridExtra")
+  library(gridExtra)
+}
+
+# Prepare data for visualization
+trees <- c(1, 5, 25, 100)
+rmse_test <- c(rmse_1_test, rmse_5_test, rmse_25_test, rmse_100_test)
+rmse_train <- c(rmse_1_train, rmse_5_train, rmse_25_train, rmse_100_train)
+r2_values <- c(r2_1, r2_5, r2_25, r2_100)
+
+# Create data frame for plotting
+plot_data <- data.frame(
+  Trees = rep(trees, 3),
+  Value = c(rmse_test, rmse_train, r2_values),
+  Metric = rep(c("RMSE_Test", "RMSE_Train", "R_squared"), each = length(trees))
+)
+
+# Create RMSE plot
+rmse_plot <- ggplot(plot_data[plot_data$Metric %in% c("RMSE_Test", "RMSE_Train"), ], 
+                    aes(x = Trees, y = Value, color = Metric)) +
+  geom_line(size = 1.2) +
+  geom_point(size = 3) +
+  scale_x_log10() +
+  scale_color_manual(values = c("RMSE_Test" = "#E31A1C", "RMSE_Train" = "#1F78B4"),
+                     labels = c("Test Data", "Training Data")) +
+  labs(
+    title = "RMSE vs Number of Trees",
+    subtitle = "Lower RMSE indicates better predictive performance",
+    x = "Number of Trees (log scale)",
+    y = "Root Mean Square Error (RMSE)",
+    color = "Dataset"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold"),
+    plot.subtitle = element_text(size = 12, color = "gray60"),
+    axis.title = element_text(size = 12),
+    legend.position = "bottom",
+    panel.grid.minor = element_blank()
+  ) +
+  scale_y_continuous(labels = scales::comma_format())
+
+# Create R-squared plot
+r2_plot <- ggplot(plot_data[plot_data$Metric == "R_squared", ], 
+                  aes(x = Trees, y = Value)) +
+  geom_line(color = "#2E8B57", size = 1.2) +
+  geom_point(color = "#2E8B57", size = 3) +
+  scale_x_log10() +
+  labs(
+    title = "R-squared vs Number of Trees",
+    subtitle = "Higher R-squared indicates better model fit",
+    x = "Number of Trees (log scale)",
+    y = "R-squared"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold"),
+    plot.subtitle = element_text(size = 12, color = "gray60"),
+    axis.title = element_text(size = 12),
+    panel.grid.minor = element_blank()
+  ) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1))
+
+# Combine plots
+grid.arrange(rmse_plot, r2_plot, ncol = 2)
+```
+
+After reviewing the plots, I can see that the most dramatic improvements in performance occurs between 1 and 5 trees. I know this because the graph has the steepest slope between those two points for both RMSE and R-squared. Moreover, the training data's RMSE decreased from approximately 28,000 to 22,000 and the testing data's RMSE decreased from approximately 45,000 to 37,000. In addition, the R-squared saw the most dramatic improvements between 1 and 8 trees, where it went from approximately 72% to 81%.
+
+As I added more trees into the model, I found that RMSE and R-squared both showed diminishing returns. I can see this because the slope of the graph becomes less steep as the number of trees increases.
 :::
+
+
+### Overfitting Analysis Visualization
+
+```{r}
+#| label: overfitting-analysis
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 14
+#| fig-height: 6
+
+# Load required libraries
+library(rpart)
+library(ggplot2)
+if (!require(gridExtra, quietly = TRUE)) {
+  install.packages("gridExtra")
+  library(gridExtra)
+}
+
+# Prepare data for overfitting analysis
+# Use the same train/test split as before
+set.seed(123)
+train_indices <- sample(1:nrow(model_data), 0.8 * nrow(model_data))
+train_data <- model_data[train_indices, ]
+test_data <- model_data[-train_indices, ]
+
+# Decision Trees: Test different max depths
+max_depths <- c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20)
+dt_train_rmse <- numeric(length(max_depths))
+dt_test_rmse <- numeric(length(max_depths))
+
+for (i in seq_along(max_depths)) {
+  # Build decision tree with specific max depth
+  dt_model <- rpart(SalePrice ~ ., data = train_data, 
+                   control = rpart.control(maxdepth = max_depths[i]))
+  
+  # Calculate predictions
+  dt_train_pred <- predict(dt_model, train_data)
+  dt_test_pred <- predict(dt_model, test_data)
+  
+  # Calculate RMSE
+  dt_train_rmse[i] <- sqrt(mean((train_data$SalePrice - dt_train_pred)^2))
+  dt_test_rmse[i] <- sqrt(mean((test_data$SalePrice - dt_test_pred)^2))
+}
+
+# Random Forests: Test different numbers of trees
+rf_trees <- c(1, 2, 3, 4, 5, 10, 15, 20, 25, 30, 40, 50, 75, 100)
+rf_train_rmse <- numeric(length(rf_trees))
+rf_test_rmse <- numeric(length(rf_trees))
+
+for (i in seq_along(rf_trees)) {
+  # Build random forest with specific number of trees
+  rf_model <- randomForest(SalePrice ~ ., data = train_data, 
+                          ntree = rf_trees[i], mtry = 3, seed = 123)
+  
+  # Calculate predictions
+  rf_train_pred <- predict(rf_model, train_data)
+  rf_test_pred <- predict(rf_model, test_data)
+  
+  # Calculate RMSE
+  rf_train_rmse[i] <- sqrt(mean((train_data$SalePrice - rf_train_pred)^2))
+  rf_test_rmse[i] <- sqrt(mean((test_data$SalePrice - rf_test_pred)^2))
+}
+
+# Create data frames for plotting
+dt_data <- data.frame(
+  Complexity = max_depths,
+  Train_RMSE = dt_train_rmse,
+  Test_RMSE = dt_test_rmse,
+  Model_Type = "Decision Tree"
+)
+
+rf_data <- data.frame(
+  Complexity = rf_trees,
+  Train_RMSE = rf_train_rmse,
+  Test_RMSE = rf_test_rmse,
+  Model_Type = "Random Forest"
+)
+
+# Find common y-axis limits for fair comparison
+all_rmse_values <- c(dt_train_rmse, dt_test_rmse, rf_train_rmse, rf_test_rmse)
+y_min <- min(all_rmse_values) * 0.95
+y_max <- max(all_rmse_values) * 1.05
+
+# Create Decision Tree plot
+dt_plot <- ggplot(dt_data, aes(x = Complexity)) +
+  geom_line(aes(y = Train_RMSE, color = "Training"), size = 1.2) +
+  geom_line(aes(y = Test_RMSE, color = "Test"), size = 1.2) +
+  geom_point(aes(y = Train_RMSE, color = "Training"), size = 2) +
+  geom_point(aes(y = Test_RMSE, color = "Test"), size = 2) +
+  scale_color_manual(values = c("Training" = "#1F78B4", "Test" = "#E31A1C")) +
+  labs(
+    title = "Decision Trees: Overfitting with Complexity",
+    subtitle = "Training and Test RMSE vs Max Depth",
+    x = "Max Depth (Tree Complexity)",
+    y = "Root Mean Square Error (RMSE)",
+    color = "Dataset"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold"),
+    plot.subtitle = element_text(size = 12, color = "gray60"),
+    axis.title = element_text(size = 12),
+    legend.position = "bottom",
+    panel.grid.minor = element_blank()
+  ) +
+  scale_y_continuous(labels = scales::comma_format(), limits = c(y_min, y_max)) +
+  scale_x_continuous(breaks = c(1, 5, 10, 15, 20))
+
+# Create Random Forest plot
+rf_plot <- ggplot(rf_data, aes(x = Complexity)) +
+  geom_line(aes(y = Train_RMSE, color = "Training"), size = 1.2) +
+  geom_line(aes(y = Test_RMSE, color = "Test"), size = 1.2) +
+  geom_point(aes(y = Train_RMSE, color = "Training"), size = 2) +
+  geom_point(aes(y = Test_RMSE, color = "Test"), size = 2) +
+  scale_color_manual(values = c("Training" = "#1F78B4", "Test" = "#E31A1C")) +
+  scale_x_log10() +
+  labs(
+    title = "Random Forests: No Overfitting with More Trees",
+    subtitle = "Training and Test RMSE vs Number of Trees",
+    x = "Number of Trees (log scale)",
+    y = "Root Mean Square Error (RMSE)",
+    color = "Dataset"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold"),
+    plot.subtitle = element_text(size = 12, color = "gray60"),
+    axis.title = element_text(size = 12),
+    legend.position = "bottom",
+    panel.grid.minor = element_blank()
+  ) +
+  scale_y_continuous(labels = scales::comma_format(), limits = c(y_min, y_max))
+
+# Combine plots side by side
+grid.arrange(dt_plot, rf_plot, ncol = 2)
+```
+
 
 ## Student Analysis Section: The Power of More Trees {#student-analysis-section}
 
@@ -336,6 +564,7 @@ Create a side-by-side comparison showing:
 - Use the same y-axis limits for both side-by-side plots so it clearly shows whether random forests outperform decision trees.
 - Do not `echo` the code that creates the visualization
 :::
+
 
 ### 3. Linear Regression vs Random Forest Comparison
 
