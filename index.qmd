@@ -4,7 +4,7 @@ subtitle: "The Power of Weak Learners"
 format:
   html: default
 execute:
-  echo: true
+  echo: false
   eval: true
 ---
 
@@ -14,13 +14,6 @@ execute:
 ## 📊 Challenge Requirements In [Student Analysis Section](#student-analysis-section)
 
 Navigate to the [Student Analysis Section](#student-analysis-section) to see the challenge requirements.
-
-:::
-
-::: {.callout-important}
-## 🎯 Note on Python Usage
-
-You have not been coached through setting up a Python environment.  **If using Python** You will need to set up a Python environment and install the necessary packages to run this code - takes about 15 minutes; see [https://quarto.org/docs/projects/virtual-environments.html](https://quarto.org/docs/projects/virtual-environments.html).  Alternatively, delete the Python code and only leave the remaining R code that is provided.  You can see the executed Python output at my GitHub pages site: [https://flyaflya.github.io/randomForestChallenge/](https://flyaflya.github.io/randomForestChallenge/).
 
 :::
 
@@ -52,6 +45,30 @@ Since we anticipate non-linear relationships, random forests are well-suited to 
 
 ::: {.panel-tabset}
 
+### Package Installation
+
+```{r}
+#| label: install-packages
+#| echo: true
+#| message: true
+#| warning: true
+
+# Set CRAN mirror
+options(repos = c(CRAN = "https://cran.rstudio.com/"))
+
+# Check if packages are already installed, install only if needed
+if (!require(tidyverse, quietly = TRUE)) {
+  install.packages("tidyverse")
+}
+if (!require(randomForest, quietly = TRUE)) {
+  install.packages("randomForest")
+}
+if (!require(languageserver, quietly = TRUE)) {
+  install.packages("languageserver")
+}
+
+```
+
 ### R
 
 ```{r}
@@ -60,42 +77,93 @@ Since we anticipate non-linear relationships, random forests are well-suited to 
 #| message: false
 #| warning: false
 
-# Load libraries
-suppressPackageStartupMessages(library(tidyverse))
-suppressPackageStartupMessages(library(randomForest))
+# Set up error handling
+options(error = function() {
+  cat("Error occurred in R code\n")
+  traceback()
+})
 
-# Load data
-sales_data <- read.csv("https://raw.githubusercontent.com/flyaflya/buad442Fall2025/refs/heads/main/datasets/salesPriceData.csv")
+# Load libraries with error handling
+tryCatch({
+  suppressPackageStartupMessages(library(tidyverse))
+  suppressPackageStartupMessages(library(randomForest))
+  cat("✓ Libraries loaded successfully\n")
+}, error = function(e) {
+  cat("✗ Error loading libraries:", e$message, "\n")
+  stop("Failed to load required libraries")
+})
 
-# Prepare model data
-model_data <- sales_data %>%
-  select(SalePrice, LotArea, YearBuilt, GrLivArea, FullBath, HalfBath, 
-         BedroomAbvGr, TotRmsAbvGrd, GarageCars, zipCode) %>%
-  # Convert zipCode to factor (categorical variable) - important for proper modeling
-  mutate(zipCode = as.factor(zipCode)) %>%
-  na.omit()
+# Load data with error handling
+tryCatch({
+  cat("Loading data...\n")
+  sales_data <- read.csv("https://raw.githubusercontent.com/flyaflya/buad442Fall2025/refs/heads/main/datasets/salesPriceData.csv")
+  cat("✓ Data loaded successfully:", nrow(sales_data), "rows\n")
+}, error = function(e) {
+  cat("✗ Error loading data:", e$message, "\n")
+  stop("Failed to load data")
+})
 
-cat("Data prepared with zipCode as categorical variable\n")
-cat("Number of unique zip codes:", length(unique(model_data$zipCode)), "\n")
+# Prepare model data with error handling
+tryCatch({
+  cat("Preparing model data...\n")
+  model_data <- sales_data %>%
+    select(SalePrice, LotArea, YearBuilt, GrLivArea, FullBath, HalfBath, 
+           BedroomAbvGr, TotRmsAbvGrd, GarageCars, zipCode) %>%
+    mutate(zipCode = as.factor(zipCode)) %>%
+    na.omit()
+  
+  cat("✓ Data prepared with zipCode as categorical variable\n")
+  cat("Number of unique zip codes:", length(unique(model_data$zipCode)), "\n")
+  cat("Dataset size:", nrow(model_data), "rows\n")
+}, error = function(e) {
+  cat("✗ Error preparing data:", e$message, "\n")
+  stop("Failed to prepare data")
+})
 
-# Split data
-set.seed(123)
-train_indices <- sample(1:nrow(model_data), 0.8 * nrow(model_data))
-train_data <- model_data[train_indices, ]
-test_data <- model_data[-train_indices, ]
+# Split data with error handling
+tryCatch({
+  set.seed(123)
+  train_indices <- sample(1:nrow(model_data), 0.8 * nrow(model_data))
+  train_data <- model_data[train_indices, ]
+  test_data <- model_data[-train_indices, ]
+  
+  cat("✓ Data split successfully\n")
+  cat("Training data size:", nrow(train_data), "rows\n")
+  cat("Test data size:", nrow(test_data), "rows\n")
+}, error = function(e) {
+  cat("✗ Error splitting data:", e$message, "\n")
+  stop("Failed to split data")
+})
 
-# Build random forests with different numbers of trees (with corrected categorical zipCode)
-rf_1 <- randomForest(SalePrice ~ ., data = train_data, ntree = 1, mtry = 3, seed = 123)
-rf_5 <- randomForest(SalePrice ~ ., data = train_data, ntree = 5, mtry = 3, seed = 123)
-rf_25 <- randomForest(SalePrice ~ ., data = train_data, ntree = 25, mtry = 3, seed = 123)
-rf_100 <- randomForest(SalePrice ~ ., data = train_data, ntree = 100, mtry = 3, seed = 123)
-rf_500 <- randomForest(SalePrice ~ ., data = train_data, ntree = 500, mtry = 3, seed = 123)
-rf_1000 <- randomForest(SalePrice ~ ., data = train_data, ntree = 1000, mtry = 3, seed = 123)
-rf_2000 <- randomForest(SalePrice ~ ., data = train_data, ntree = 2000, mtry = 3, seed = 123)
-rf_5000 <- randomForest(SalePrice ~ ., data = train_data, ntree = 5000, mtry = 3, seed = 123)
+# Build random forests with error handling
+tryCatch({
+  cat("Building random forest models...\n")
+  
+  cat("Building 1-tree model...\n")
+  rf_1 <<- randomForest(SalePrice ~ ., data = train_data, ntree = 1, mtry = 3, seed = 123)
+  cat("✓ 1-tree model built\n")
+  
+  cat("Building 5-tree model...\n")
+  rf_5 <<- randomForest(SalePrice ~ ., data = train_data, ntree = 5, mtry = 3, seed = 123)
+  cat("✓ 5-tree model built\n")
+  
+  cat("Building 25-tree model...\n")
+  rf_25 <<- randomForest(SalePrice ~ ., data = train_data, ntree = 25, mtry = 3, seed = 123)
+  cat("✓ 25-tree model built\n")
+  
+  cat("Building 100-tree model...\n")
+  rf_100 <<- randomForest(SalePrice ~ ., data = train_data, ntree = 100, mtry = 3, seed = 123)
+  cat("✓ 100-tree model built\n")
+  
+  cat("✓ All models built successfully!\n")
+}, error = function(e) {
+  cat("✗ Error building models:", e$message, "\n")
+  stop("Failed to build random forest models")
+})
+
 ```
 
-### Python
+
 
 ```{python}
 #| label: load-and-model-python
@@ -161,7 +229,7 @@ Our analysis reveals a clear pattern: **more trees consistently improve performa
 
 ```{r}
 #| label: performance-comparison-r
-#| echo: true
+#| echo: false
 #| message: false
 #| warning: false
 #| fig-width: 10
@@ -172,128 +240,49 @@ predictions_1_test <- predict(rf_1, test_data)
 predictions_5_test <- predict(rf_5, test_data)
 predictions_25_test <- predict(rf_25, test_data)
 predictions_100_test <- predict(rf_100, test_data)
-predictions_500_test <- predict(rf_500, test_data)
-predictions_1000_test <- predict(rf_1000, test_data)
-predictions_2000_test <- predict(rf_2000, test_data)
-predictions_5000_test <- predict(rf_5000, test_data)
+# predictions_500_test <- predict(rf_500, test_data)
+# predictions_1000_test <- predict(rf_1000, test_data)
 
 # Calculate predictions for training data
 predictions_1_train <- predict(rf_1, train_data)
 predictions_5_train <- predict(rf_5, train_data)
 predictions_25_train <- predict(rf_25, train_data)
 predictions_100_train <- predict(rf_100, train_data)
-predictions_500_train <- predict(rf_500, train_data)
-predictions_1000_train <- predict(rf_1000, train_data)
-predictions_2000_train <- predict(rf_2000, train_data)
-predictions_5000_train <- predict(rf_5000, train_data)
+# predictions_500_train <- predict(rf_500, train_data)
+# predictions_1000_train <- predict(rf_1000, train_data)
 
 # Calculate RMSE for test data
 rmse_1_test <- sqrt(mean((test_data$SalePrice - predictions_1_test)^2))
 rmse_5_test <- sqrt(mean((test_data$SalePrice - predictions_5_test)^2))
 rmse_25_test <- sqrt(mean((test_data$SalePrice - predictions_25_test)^2))
 rmse_100_test <- sqrt(mean((test_data$SalePrice - predictions_100_test)^2))
-rmse_500_test <- sqrt(mean((test_data$SalePrice - predictions_500_test)^2))
-rmse_1000_test <- sqrt(mean((test_data$SalePrice - predictions_1000_test)^2))
-rmse_2000_test <- sqrt(mean((test_data$SalePrice - predictions_2000_test)^2))
-rmse_5000_test <- sqrt(mean((test_data$SalePrice - predictions_5000_test)^2))
+# rmse_500_test <- sqrt(mean((test_data$SalePrice - predictions_500_test)^2))
+# rmse_1000_test <- sqrt(mean((test_data$SalePrice - predictions_1000_test)^2))
 
 # Calculate RMSE for training data
 rmse_1_train <- sqrt(mean((train_data$SalePrice - predictions_1_train)^2))
 rmse_5_train <- sqrt(mean((train_data$SalePrice - predictions_5_train)^2))
 rmse_25_train <- sqrt(mean((train_data$SalePrice - predictions_25_train)^2))
 rmse_100_train <- sqrt(mean((train_data$SalePrice - predictions_100_train)^2))
-rmse_500_train <- sqrt(mean((train_data$SalePrice - predictions_500_train)^2))
-rmse_1000_train <- sqrt(mean((train_data$SalePrice - predictions_1000_train)^2))
-rmse_2000_train <- sqrt(mean((train_data$SalePrice - predictions_2000_train)^2))
-rmse_5000_train <- sqrt(mean((train_data$SalePrice - predictions_5000_train)^2))
+# rmse_500_train <- sqrt(mean((train_data$SalePrice - predictions_500_train)^2))
+# rmse_1000_train <- sqrt(mean((train_data$SalePrice - predictions_1000_train)^2))
 
 # Calculate R-squared
 r2_1 <- 1 - sum((test_data$SalePrice - predictions_1_test)^2) / sum((test_data$SalePrice - mean(test_data$SalePrice))^2)
 r2_5 <- 1 - sum((test_data$SalePrice - predictions_5_test)^2) / sum((test_data$SalePrice - mean(test_data$SalePrice))^2)
 r2_25 <- 1 - sum((test_data$SalePrice - predictions_25_test)^2) / sum((test_data$SalePrice - mean(test_data$SalePrice))^2)
 r2_100 <- 1 - sum((test_data$SalePrice - predictions_100_test)^2) / sum((test_data$SalePrice - mean(test_data$SalePrice))^2)
-r2_500 <- 1 - sum((test_data$SalePrice - predictions_500_test)^2) / sum((test_data$SalePrice - mean(test_data$SalePrice))^2)
-r2_1000 <- 1 - sum((test_data$SalePrice - predictions_1000_test)^2) / sum((test_data$SalePrice - mean(test_data$SalePrice))^2)
-r2_2000 <- 1 - sum((test_data$SalePrice - predictions_2000_test)^2) / sum((test_data$SalePrice - mean(test_data$SalePrice))^2)
-r2_5000 <- 1 - sum((test_data$SalePrice - predictions_5000_test)^2) / sum((test_data$SalePrice - mean(test_data$SalePrice))^2)
+# r2_500 <- 1 - sum((test_data$SalePrice - predictions_500_test)^2) / sum((test_data$SalePrice - mean(test_data$SalePrice))^2)
+# r2_1000 <- 1 - sum((test_data$SalePrice - predictions_1000_test)^2) / sum((test_data$SalePrice - mean(test_data$SalePrice))^2)
 
 # Create performance comparison
 performance_df <- data.frame(
-  Trees = c(1, 5, 25, 100, 500, 1000, 2000, 5000),
-  RMSE_Test = c(rmse_1_test, rmse_5_test, rmse_25_test, rmse_100_test, rmse_500_test, rmse_1000_test, rmse_2000_test, rmse_5000_test),
-  RMSE_Train = c(rmse_1_train, rmse_5_train, rmse_25_train, rmse_100_train, rmse_500_train, rmse_1000_train, rmse_2000_train, rmse_5000_train),
-  R_squared = c(r2_1, r2_5, r2_25, r2_100, r2_500, r2_1000, r2_2000, r2_5000)
+  Trees = c(1, 5, 25, 100),
+  RMSE_Test = c(rmse_1_test, rmse_5_test, rmse_25_test, rmse_100_test),
+  RMSE_Train = c(rmse_1_train, rmse_5_train, rmse_25_train, rmse_100_train),
+  R_squared = c(r2_1, r2_5, r2_25, r2_100)
 )
 
-print(performance_df)
-```
-
-### Python
-
-```{python}
-#| label: performance-comparison-python
-#| echo: true
-#| fig-width: 10
-#| fig-height: 6
-
-# Calculate predictions for test data
-predictions_1_test = rf_1.predict(X_test)
-predictions_5_test = rf_5.predict(X_test)
-predictions_25_test = rf_25.predict(X_test)
-predictions_100_test = rf_100.predict(X_test)
-predictions_500_test = rf_500.predict(X_test)
-predictions_1000_test = rf_1000.predict(X_test)
-predictions_2000_test = rf_2000.predict(X_test)
-predictions_5000_test = rf_5000.predict(X_test)
-
-# Calculate predictions for training data
-predictions_1_train = rf_1.predict(X_train)
-predictions_5_train = rf_5.predict(X_train)
-predictions_25_train = rf_25.predict(X_train)
-predictions_100_train = rf_100.predict(X_train)
-predictions_500_train = rf_500.predict(X_train)
-predictions_1000_train = rf_1000.predict(X_train)
-predictions_2000_train = rf_2000.predict(X_train)
-predictions_5000_train = rf_5000.predict(X_train)
-
-# Calculate performance metrics for test data
-rmse_1_test = np.sqrt(mean_squared_error(y_test, predictions_1_test))
-rmse_5_test = np.sqrt(mean_squared_error(y_test, predictions_5_test))
-rmse_25_test = np.sqrt(mean_squared_error(y_test, predictions_25_test))
-rmse_100_test = np.sqrt(mean_squared_error(y_test, predictions_100_test))
-rmse_500_test = np.sqrt(mean_squared_error(y_test, predictions_500_test))
-rmse_1000_test = np.sqrt(mean_squared_error(y_test, predictions_1000_test))
-rmse_2000_test = np.sqrt(mean_squared_error(y_test, predictions_2000_test))
-rmse_5000_test = np.sqrt(mean_squared_error(y_test, predictions_5000_test))
-
-# Calculate performance metrics for training data
-rmse_1_train = np.sqrt(mean_squared_error(y_train, predictions_1_train))
-rmse_5_train = np.sqrt(mean_squared_error(y_train, predictions_5_train))
-rmse_25_train = np.sqrt(mean_squared_error(y_train, predictions_25_train))
-rmse_100_train = np.sqrt(mean_squared_error(y_train, predictions_100_train))
-rmse_500_train = np.sqrt(mean_squared_error(y_train, predictions_500_train))
-rmse_1000_train = np.sqrt(mean_squared_error(y_train, predictions_1000_train))
-rmse_2000_train = np.sqrt(mean_squared_error(y_train, predictions_2000_train))
-rmse_5000_train = np.sqrt(mean_squared_error(y_train, predictions_5000_train))
-
-r2_1 = r2_score(y_test, predictions_1_test)
-r2_5 = r2_score(y_test, predictions_5_test)
-r2_25 = r2_score(y_test, predictions_25_test)
-r2_100 = r2_score(y_test, predictions_100_test)
-r2_500 = r2_score(y_test, predictions_500_test)
-r2_1000 = r2_score(y_test, predictions_1000_test)
-r2_2000 = r2_score(y_test, predictions_2000_test)
-r2_5000 = r2_score(y_test, predictions_5000_test)
-
-# Create performance comparison
-performance_data = {
-    'Trees': [1, 5, 25, 100, 500, 1000, 2000, 5000],
-    'RMSE_Test': [rmse_1_test, rmse_5_test, rmse_25_test, rmse_100_test, rmse_500_test, rmse_1000_test, rmse_2000_test, rmse_5000_test],
-    'RMSE_Train': [rmse_1_train, rmse_5_train, rmse_25_train, rmse_100_train, rmse_500_train, rmse_1000_train, rmse_2000_train, rmse_5000_train],
-    'R_squared': [r2_1, r2_5, r2_25, r2_100, r2_500, r2_1000, r2_2000, r2_5000]
-}
-
-performance_df = pd.DataFrame(performance_data)
 print(performance_df)
 ```
 
