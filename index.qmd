@@ -49,7 +49,7 @@ Since we anticipate non-linear relationships, random forests are well-suited to 
 
 ```{r}
 #| label: install-packages
-#| echo: true
+#| echo: false
 #| message: true
 #| warning: true
 
@@ -79,7 +79,7 @@ if (!require(rpart, quietly = TRUE)) {
 
 ```{r}
 #| label: load-and-model-r
-#| echo: true
+#| echo: false
 #| message: false
 #| warning: false
 
@@ -173,7 +173,7 @@ tryCatch({
 
 ```{python}
 #| label: load-and-model-python
-#| echo: true
+#| echo: false
 
 import pandas as pd
 import numpy as np
@@ -227,7 +227,7 @@ rf_5000.fit(X_train, y_train)
 
 Our analysis reveals a clear pattern: **more trees consistently improve performance**. Let's examine the results and understand why this happens.
 
-### Performance Trends
+### Student Analysis Section: The Power of More Trees {#student-analysis-section}
 
 ::: {.panel-tabset}
 
@@ -372,11 +372,13 @@ r2_plot <- ggplot(plot_data[plot_data$Metric == "R_squared", ],
 grid.arrange(rmse_plot, r2_plot, ncol = 2)
 ```
 
-After reviewing the plots, I can see that the most dramatic improvements in performance occurs between 1 and 5 trees. I know this because the graph has the steepest slope between those two points for both RMSE and R-squared. Moreover, the training data's RMSE decreased from approximately 28,000 to 22,000 and the testing data's RMSE decreased from approximately 45,000 to 37,000. In addition, the R-squared saw the most dramatic improvements between 1 and 8 trees, where it went from approximately 72% to 81%.
+### Analysis/Discussion
+After reviewing the plots, we can see that the most dramatic improvements in performance occurs between 1 and 5 trees. We know this because the graph has the steepest slope between those two points for both RMSE and R-squared. Moreover, the training data's RMSE decreased from approximately 28,000 to 22,000 and the testing data's RMSE decreased from approximately 45,000 to 37,000. In addition, the R-squared saw the most dramatic improvements between 1 and 8 trees, where it went from approximately 72% to 81%.
 
-As I added more trees into the model, I found that RMSE and R-squared both showed diminishing returns. I can see this because the slope of the graph becomes less steep as the number of trees increases.
+As we added more trees into the model, we found that RMSE and R-squared both showed diminishing returns. We can see this because the slope of the graph becomes less steep as the number of trees increases. This may be because as the model becomes more complex, it starts to overfit the data.
 :::
 
+::: {.panel-tabset}
 
 ### Overfitting Analysis Visualization
 
@@ -515,8 +517,60 @@ rf_plot <- ggplot(rf_data, aes(x = Complexity)) +
 grid.arrange(dt_plot, rf_plot, ncol = 2)
 ```
 
+### Analysis/Discussion
 
-## Student Analysis Section: The Power of More Trees {#student-analysis-section}
+In the first graph, we can see the individual decision trees overfitting as they become more complex. When max depth increases, the RMSE does not decrease and stays stagnant for both the training and test data. Moreover, when we allow max depth to increase without adding any constraints, the model starts to overfit the data because it desperately tries to split on the same datapoints over and over again causing redundancies within the trees.
+
+On the contrary, the random forests model does not suffer from the same overfitting problem because each tree is built on a different subset of the data. This prevents the model from overfitting the data because it's not trying to split on the same datapoints but rather averages out the predictions of the individual tree's results. We can see this in the graph where when we increase the number of trees, the RMSE doesn't flatline like it did with the individual decision tree.
+
+As mentioned before, the mechanisms that prevent overfitting in random forests involve bootstrapping which is a resampling technique that takes multiple different training datasets to train many individual decision trees. During this bootstrapping step, the features selected are randomly selected which is why it is important to set a seed before curating the model. Without the seed, we would find different results every time we run the code. Afterwards, the model averages up the results of the many decision trees it made and creates one final model based on those many bootstrapped decision trees.
+:::
+
+::: {.panel-tabset}
+
+### Comparison Table
+
+```{r}
+#| label: comparison-table
+#| echo: false
+#| message: false
+#| warning: false
+
+# Ensure required models/data exist from earlier chunks
+# Fit linear regression baseline
+lm_model <- lm(SalePrice ~ ., data = train_data)
+lm_pred_test <- predict(lm_model, test_data)
+rmse_lm <- sqrt(mean((test_data$SalePrice - lm_pred_test)^2))
+
+# Use existing rf_1 and rf_100, train rf_1000
+rf_1000 <- randomForest(SalePrice ~ ., data = train_data, ntree = 1000, mtry = 3, seed = 123)
+
+rf1_pred_test <- predict(rf_1, test_data)
+rf100_pred_test <- predict(rf_100, test_data)
+rf1000_pred_test <- predict(rf_1000, test_data)
+
+rmse_rf1 <- sqrt(mean((test_data$SalePrice - rf1_pred_test)^2))
+rmse_rf100 <- sqrt(mean((test_data$SalePrice - rf100_pred_test)^2))
+rmse_rf1000 <- sqrt(mean((test_data$SalePrice - rf1000_pred_test)^2))
+
+# Build comparison table with improvements vs Linear Regression
+comparison_df <- data.frame(
+  Model = c("Linear Regression", "Random Forest (1 tree)", "Random Forest (100 trees)", "Random Forest (1000 trees)"),
+  RMSE = c(rmse_lm, rmse_rf1, rmse_rf100, rmse_rf1000)
+)
+
+comparison_df$Improvement_vs_Linear <- (comparison_df$RMSE[1] - comparison_df$RMSE) / comparison_df$RMSE[1] * 100
+
+# Pretty print
+comparison_df$RMSE <- scales::comma(round(comparison_df$RMSE, 2))
+comparison_df$Improvement_vs_Linear <- paste0(round(comparison_df$Improvement_vs_Linear, 1), "%")
+
+knitr::kable(comparison_df, align = c('l','r','r'), caption = "Model RMSE and % Improvement vs Linear Regression (lower RMSE is better)")
+```
+
+### Analysis/Discussion
+
+:::
 
 **Your Task:** Create visualizations and analysis to demonstrate the power of ensemble learning. You'll need to create three key components:
 
@@ -594,6 +648,8 @@ Create a clear table comparing:
 
 Include percentage improvements over linear regression for each random forest model.
 :::
+
+
 
 ## Challenge Requirements 📋
 
