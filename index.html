@@ -3546,8 +3546,11 @@ div.sk-label-container:hover .sk-estimator-doc-link.fitted:hover,
 <p>Our analysis reveals a clear pattern: <strong>more trees consistently improve performance</strong>. Let’s examine the results and understand why this happens.</p>
 <section id="student-analysis-section" class="level3">
 <h3 class="anchored" data-anchor-id="student-analysis-section">Student Analysis Section: The Power of More Trees</h3>
+</section>
+<section id="the-power-of-more-trees-visualization" class="level3">
+<h3 class="anchored" data-anchor-id="the-power-of-more-trees-visualization">1. The Power of More Trees Visualization</h3>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
-<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-2-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-1" role="tab" aria-controls="tabset-2-1" aria-selected="true" href="">R</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-2-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-2" role="tab" aria-controls="tabset-2-2" aria-selected="false" href="">Power of More Trees Visualization</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-2-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-3" role="tab" aria-controls="tabset-2-3" aria-selected="false" href="">Analysis/Discussion</a></li></ul>
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-2-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-1" role="tab" aria-controls="tabset-2-1" aria-selected="true" href="">R</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-2-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-2" role="tab" aria-controls="tabset-2-2" aria-selected="false" href="">Visualization</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-2-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-3" role="tab" aria-controls="tabset-2-3" aria-selected="false" href="">Analysis/Discussion</a></li></ul>
 <div class="tab-content">
 <div id="tabset-2-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-2-1-tab">
 <div class="cell">
@@ -3577,8 +3580,11 @@ div.sk-label-container:hover .sk-estimator-doc-link.fitted:hover,
 </div>
 </div>
 </div>
+</section>
+<section id="overfitting-analysis-visualization" class="level3">
+<h3 class="anchored" data-anchor-id="overfitting-analysis-visualization">2. Overfitting Analysis Visualization</h3>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
-<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-3-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-1" role="tab" aria-controls="tabset-3-1" aria-selected="true" href="">Overfitting Analysis Visualization</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-3-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-2" role="tab" aria-controls="tabset-3-2" aria-selected="false" href="">Analysis/Discussion</a></li></ul>
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-3-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-1" role="tab" aria-controls="tabset-3-1" aria-selected="true" href="">Visualization</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-3-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-2" role="tab" aria-controls="tabset-3-2" aria-selected="false" href="">Analysis/Discussion</a></li></ul>
 <div class="tab-content">
 <div id="tabset-3-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-3-1-tab">
 <div class="cell">
@@ -3598,6 +3604,9 @@ div.sk-label-container:hover .sk-estimator-doc-link.fitted:hover,
 </div>
 </div>
 </div>
+</section>
+<section id="linear-regression-vs-random-forest-comparison" class="level3">
+<h3 class="anchored" data-anchor-id="linear-regression-vs-random-forest-comparison">3. Linear Regression vs Random Forest Comparison</h3>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-4-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-1" role="tab" aria-controls="tabset-4-1" aria-selected="true" href="">Comparison Table</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-4-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-2" role="tab" aria-controls="tabset-4-2" aria-selected="false" href="">Analysis/Discussion</a></li></ul>
 <div class="tab-content">
@@ -3640,14 +3649,14 @@ div.sk-label-container:hover .sk-estimator-doc-link.fitted:hover,
 </div>
 </div>
 <div id="tabset-4-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-4-2-tab">
-
+<p>As we increase the number of trees in the random forest model, we see a decrease in the RMSE which is a good thing since it means the model is able to predict the test data more accurately. When we switch to 100 trees from linear regression, we see the RMSE to be about the same with only a 1.9% difference between the two models. Random forests added complexity is worth it when we have a dataset that is not linearly separable. However, there is a trade off between interpretability and performance. The random forest model is more difficult to interpret than the linear regression model but it’s able to predict the data more accurately in a non-linear way. Therefore, we traded a worse understanding model for a better performing one (vise versa is true for linear regression model).</p>
 </div>
 </div>
 </div>
 <p><strong>Your Task:</strong> Create visualizations and analysis to demonstrate the power of ensemble learning. You’ll need to create three key components:</p>
 </section>
-<section id="the-power-of-more-trees-visualization" class="level3">
-<h3 class="anchored" data-anchor-id="the-power-of-more-trees-visualization">1. The Power of More Trees Visualization</h3>
+<section id="the-power-of-more-trees-visualization-1" class="level3">
+<h3 class="anchored" data-anchor-id="the-power-of-more-trees-visualization-1">1. The Power of More Trees Visualization</h3>
 <p><strong>Create a visualization showing:</strong> - RMSE vs Number of Trees (both training and test data) - R-squared vs Number of Trees - Do not <code>echo</code> the code that creates the visualization</p>
 <p><strong>Add Brief Discussion of the Visualization</strong> - Discuss where the most dramatic improvement in performance occurs as you add more trees, how dramatic is it? - Discuss diminishing returns as you add more trees</p>
 <div class="callout callout-style-default callout-important callout-titled">
@@ -3688,8 +3697,8 @@ div.sk-label-container:hover .sk-estimator-doc-link.fitted:hover,
 </div>
 </div>
 </section>
-<section id="linear-regression-vs-random-forest-comparison" class="level3">
-<h3 class="anchored" data-anchor-id="linear-regression-vs-random-forest-comparison">3. Linear Regression vs Random Forest Comparison</h3>
+<section id="linear-regression-vs-random-forest-comparison-1" class="level3">
+<h3 class="anchored" data-anchor-id="linear-regression-vs-random-forest-comparison-1">3. Linear Regression vs Random Forest Comparison</h3>
 <p><strong>Your Task:</strong> Compare random forests to linear regression baseline.</p>
 <p><strong>Create a comparison table showing:</strong> - Linear Regression RMSE - Random Forest (1 tree) RMSE<br>
 - Random Forest (100 trees) RMSE - Random Forest (1000 trees) RMSE</p>

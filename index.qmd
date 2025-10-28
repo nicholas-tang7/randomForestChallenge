@@ -229,6 +229,7 @@ Our analysis reveals a clear pattern: **more trees consistently improve performa
 
 ### Student Analysis Section: The Power of More Trees {#student-analysis-section}
 
+### 1. The Power of More Trees Visualization
 ::: {.panel-tabset}
 
 ### R
@@ -292,7 +293,7 @@ performance_df <- data.frame(
 print(performance_df)
 ```
 
-### Power of More Trees Visualization
+### Visualization
 
 ```{r}
 #| label: power-of-trees-visualization
@@ -378,9 +379,11 @@ After reviewing the plots, we can see that the most dramatic improvements in per
 As we added more trees into the model, we found that RMSE and R-squared both showed diminishing returns. We can see this because the slope of the graph becomes less steep as the number of trees increases. This may be because as the model becomes more complex, it starts to overfit the data.
 :::
 
+### 2. Overfitting Analysis Visualization
+
 ::: {.panel-tabset}
 
-### Overfitting Analysis Visualization
+### Visualization
 
 ```{r}
 #| label: overfitting-analysis
@@ -526,6 +529,8 @@ On the contrary, the random forests model does not suffer from the same overfitt
 As mentioned before, the mechanisms that prevent overfitting in random forests involve bootstrapping which is a resampling technique that takes multiple different training datasets to train many individual decision trees. During this bootstrapping step, the features selected are randomly selected which is why it is important to set a seed before curating the model. Without the seed, we would find different results every time we run the code. Afterwards, the model averages up the results of the many decision trees it made and creates one final model based on those many bootstrapped decision trees.
 :::
 
+### 3. Linear Regression vs Random Forest Comparison
+
 ::: {.panel-tabset}
 
 ### Comparison Table
@@ -570,6 +575,7 @@ knitr::kable(comparison_df, align = c('l','r','r'), caption = "Model RMSE and % 
 
 ### Analysis/Discussion
 
+As we increase the number of trees in the random forest model, we see a decrease in the RMSE which is a good thing since it means the model is able to predict the test data more accurately. When we switch to 100 trees from linear regression, we see the RMSE to be about the same with only a 1.9% difference between the two models. Random forests added complexity is worth it when we have a dataset that is not linearly separable. However, there is a trade off between interpretability and performance. The random forest model is more difficult to interpret than the linear regression model but it's able to predict the data more accurately in a non-linear way. Therefore, we traded a worse understanding model for a better performing one (vise versa is true for linear regression model).
 :::
 
 **Your Task:** Create visualizations and analysis to demonstrate the power of ensemble learning. You'll need to create three key components:
